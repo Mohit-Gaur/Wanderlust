@@ -22,13 +22,42 @@ const getVenues = async () => {
   const urlToFetch = `${url}${city}&limit=10&client_id=${clientId}&client_secret=${clientSecret}&v=20180101`;
   try {
     const response = await fetch(urlToFetch);
+    if(response.ok)
+    {
+      console.log(response);
+      const jsonResponse = await response.json();
+      console.log(jsonResponse);
+      const venues = jsonResponse.response.groups[0].items.map(item => item.venue);
+      console.log(venues)
+      return venues;
+    }
+    else
+    {
+      throw new Error('Request Failed');
+    }
 } 
 catch (error) {
-  console.log(error);  
+  console.log(error.message);  
 }
 };
 
-const getForecast = () => {
+const getForecast = async () => {
+  const  urlToFetch = `${forecastUrl}${apikey}&q = ${$input.val()}&days=4&hour=11`;
+  try{
+    const response = await fetch(utlToFetch);
+    if(response.ok){
+      const jsonResponse = await response.json();
+      console.log(jsonResponse);
+      const days = jsonResponse.forecast.forecastday;
+      return days;
+    }
+    else{
+      throw new Error('Request Failed')
+    }
+  }
+  catch(error){
+    console.log(error.message);
+  }
 
 }
 
@@ -37,18 +66,21 @@ const getForecast = () => {
 const renderVenues = (venues) => {
   $venueDivs.forEach(($venue, index) => {
     // Add your code here:
-
-    let venueContent = '';
+    const venue = venues.[index]
+    const venueIcon = venue.categories[0].icon
+    const venueImgsrc = `${venueIcon.prefix}bg_64${venueIcon.suffix}`;
+    let venueContent = createVenueHTML(venue.name, venue.location, venueImgSrc);
     $venue.append(venueContent);
   });
   $destination.append(`<h2>${venues[0].location.city}</h2>`);
 }
 
-const renderForecast = (day) => {
-  // Add your code here:
-  
-	let weatherContent = '';
-  $weatherDiv.append(weatherContent);
+const renderForecast = (days) => {
+  $weatherDivs.forEach($day, index) => {
+    const currentDay = days[index];
+    let weatherContent = createWeatherHTML(currentDay);
+    $day.append(weatherContent);
+  }
 }
 
 const executeSearch = () => {
@@ -56,8 +88,8 @@ const executeSearch = () => {
   $weatherDiv.empty();
   $destination.empty();
   $container.css("visibility", "visible");
-  getVenues()
-  getForecast()
+  getVenues().then(venues => renderVenues(venues));
+  getForecast().then(forecasat => renderForecast(forecast));
   return false;
 }
 
